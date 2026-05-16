@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 )
@@ -15,13 +17,6 @@ type Expense struct {
 }
 
 func main() {
-	// Create file if it doesnt exist yet
-	f, err := os.OpenFile("expenses.json", os.O_CREATE|os.O_WRONLY, 0666)
-
-	handleErr(err)
-
-	defer f.Close()
-
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	addName := addCmd.String("name", "", "Name of the expense")
 	addPrice := addCmd.Float64("price", 0.00, "Cost of the expense")
@@ -99,7 +94,7 @@ func listExpenses() {
 	for _, expense := range expenses {
 		fmt.Println("Id:", expense.Id)
 		fmt.Println("Name:", expense.Name)
-		fmt.Printf("Price €%.2f", expense.Price)
+		fmt.Printf("Price €%.2f\n", expense.Price)
 	}
 }
 
@@ -108,17 +103,17 @@ func deleteExpense(expenseIdToDelete *uint64) {
 
 	var newExpenses []Expense
 
-	hasOccured := false
+	hasOccurred := false
 
 	for _, expense := range expenses {
 		if expense.Id != *expenseIdToDelete {
 			newExpenses = append(newExpenses, expense)
 		} else {
-			hasOccured = true
+			hasOccurred = true
 		}
 	}
 
-	if !hasOccured {
+	if !hasOccurred {
 		fmt.Println("expense with ID", *expenseIdToDelete, "does not exist!")
 
 		return
@@ -136,7 +131,7 @@ func summarize() {
 		totalPrice += expense.Price
 	}
 
-	fmt.Printf("Total price of expenses: €%.2f", totalPrice)
+	fmt.Printf("Total price of expenses: €%.2f\n", totalPrice)
 }
 
 func handleErr(err error) {
@@ -147,6 +142,10 @@ func handleErr(err error) {
 
 func getExpenses() []Expense {
 	b, err := os.ReadFile("expenses.json")
+
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
 
 	handleErr(err)
 
