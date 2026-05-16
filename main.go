@@ -26,42 +26,50 @@ func main() {
 	switch os.Args[1] {
 	case "add":
 		addCmd.Parse(os.Args[2:])
-		required := map[string]bool{"name": false, "price": false}
-		addCmd.Visit(func(f *flag.Flag) {
-			required[f.Name] = true
-		})
+		validate_arguments(addCmd, map[string]bool{"name": false, "price": false})
 
-		for flag, set := range required {
-			if !set {
-				fmt.Println(flag, "flag not set!")
-				addCmd.Usage()
-				os.Exit(1)
-			}
-		}
-
-		fmt.Println("Expense name:", *addName)
-		fmt.Printf("Expense price: €%.2f\n", *addPrice)
+		add_expense(addName, addPrice)
 	case "list":
 		listCmd.Parse(os.Args[2:])
-		fmt.Println("Printing the expenses")
+		list_expenses()
 	case "delete":
 		deleteCmd.Parse(os.Args[2:])
-		required := map[string]bool{"id": false}
-		deleteCmd.Visit(func(f *flag.Flag) {
-			required[f.Name] = true
-		})
+		validate_arguments(deleteCmd, map[string]bool{"id": false})
 
-		for flag, set := range required {
-			if !set {
-				fmt.Println(flag, "flag not set!")
-				deleteCmd.Usage()
-				os.Exit(1)
-			}
-		}
-
-		fmt.Println("Deleting expense with id", *deleteId)
+		delete_expense(deleteId)
 	case "summary":
 		summaryCmd.Parse(os.Args[2:])
-		fmt.Println("Printing the summary")
+		summarize()
 	}
+}
+
+func validate_arguments(flags *flag.FlagSet, requirement_list map[string]bool) {
+	flags.Visit(func(f *flag.Flag) {
+		requirement_list[f.Name] = true
+	})
+
+	for flag, set := range requirement_list {
+		if !set {
+			fmt.Println(flag, "flag not set!")
+			flags.Usage()
+			os.Exit(1)
+		}
+	}
+}
+
+func add_expense(expense_name *string, expense_price *float64) {
+	fmt.Println("Expense name:", expense_name)
+	fmt.Printf("Expense price: €%.2f\n", *expense_price)
+}
+
+func list_expenses() {
+
+}
+
+func delete_expense(expense_id *uint) {
+
+}
+
+func summarize() {
+
 }
